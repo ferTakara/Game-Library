@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Posts</h2>
+
+<div class="posts">
+    {% for review in reviews %}
+    <a href="/reviews/{{review.id}}" class="post-link">
+        <div class="post-card">
+
+            <div class="post-header">
+                <img class="user-icon" src="/static/profile_pics/default.png" alt="icon">
+                <div class="post-user-info">
+                    <span class="username">{{review.user}}</span>
+                    <span class="game-name">{{review.game}}</span>
+                </div>
+            </div>
+
+            <div class="post-body">
+                <p style="color: white;">{{review.text}}</p>
+            </div>
+
+            <span class="game-name">{{review.score}}</span>
+
+        </div>
+    </a>
+    {% endfor %} 
+</div>
+
+{% endblock content %}

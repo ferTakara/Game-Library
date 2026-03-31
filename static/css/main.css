@@ -1,0 +1,133 @@
+h1 {color: #9da742}
+a {
+    color: #9da742;
+    text-decoration: none;
+}
+a:hover {
+    color: gray;
+}
+
+#headerCabecalho div {
+    display: flex;
+    justify-content: center;
+    align-items: center;     
+    gap: 20px;
+}
+
+#headerCabecalho {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 30vw;             
+}
+
+body {
+    background-color: rgb(18, 19, 24);
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    padding: 0.2vw;
+    background-color: rgb(24, 26, 33);
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;  
+    position: relative;
+}
+
+main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: 
+        linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgb(18, 19, 24) 100%),
+        url("https://cdn.mos.cms.futurecdn.net/qCWBVKEAmrW4zQzEaGEjFg.jpg");
+
+    background-size: cover;
+
+    filter: blur(0.2vw);
+    z-index: -1;
+}   
+
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 100vw;
+    margin: auto;
+    color: white;
+}
+
+#bodyMain {
+    background-color: rgb(18, 19, 24);
+    width: 140vh;
+    padding: 10px;
+}
+
+.posts{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.post-card {
+  background-color: rgb(24, 26, 33);
+  border: 1px solid #3a3f4b;
+  border-radius: 16px;
+  width: 60%;
+  padding: 16px;
+  transition: 0.2s;
+}
+
+.post-card:hover {
+  background-color: #2a2d38;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.user-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.post-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  color: #e6e6e6;
+  font-weight: bold;
+}
+
+.game-name {
+  color: #9da742;
+  font-size: 0.9rem;
+}
+
+.error {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;  
+    margin: 20vh;
+}
+
+footer {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding: 2vw;
+    background-color: rgb(18, 19, 24);
+}

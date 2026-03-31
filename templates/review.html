@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="posts">
+        <div class="post-card">
+
+            <div class="post-header">
+                <img class="user-icon" src="/static/profile_pics/default.png" alt="icon">
+                <div class="post-user-info">
+                    <span class="username">{{review.user}}</span>
+                    <span class="game-name">{{review.game}}</span>
+                </div>
+            </div>
+
+            <div class="post-body">
+                <p>{{review.text}}</p>
+            </div>
+
+            <span class="game-name">{{review.score}}</span>
+
+
+        </div>
+</div>
+
+{% endblock content %}

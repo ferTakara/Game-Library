@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block content %}
+    <div class="error">
+        <h1>{{status_code}} Error</h1>
+        <p>{{ message }}</p>
+        <img src="/static/pics/error.gif" alt="animation" width="64" height="48">
+    </div>
+{% endblock content %}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if title %}
+        BabelGames - {{title}}
+        {% else %}
+        BabelGames
+        {% endif %}
+    </title>
+    
+</head>
+
+<body>
+    <header>
+        <div id="headerCabecalho">
+            <div>
+                <h1>BabelGames</h1>
+                <a href="/">Home</a>
+            </div>
+
+            <div>
+                {% if user %}
+                    <a href="/home">Profile</a>
+                    <a href="/logout">Logout</a>
+                {% else %}
+                    <a href="/login">Login</a>
+                    <a href="/sign_in">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div id="bodyMain">
+            {% block content %}
+
+            {% endblock content %}
+        </div>
+    </main>
+
+    <footer>
+        <a href="https://www.youtube.com/watch?v=Zj7_mUZ6Cpw">Créditos | Fale conosco</a>
+        <a>© 1999 - 2026 - Superintendência de Tecnologia da Informação/USP</a> 
+    </footer>
+</body>
+
+</html>
