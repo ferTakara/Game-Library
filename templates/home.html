@@ -9,9 +9,9 @@
         <div class="post-card">
 
             <div class="post-header">
-                <img class="user-icon" src="/static/profile_pics/default.png" alt="icon">
+                <img class="user-icon" src="{{review.user.image_path}}" alt="icon">
                 <div class="post-user-info">
-                    <span class="username">{{review.user}}</span>
+                    <a href="/users/{{review.user.id}}" style="color: white;" class="username">{{review.user.username}}</a>
                     <span class="game-name">{{review.game}}</span>
                 </div>
             </div>

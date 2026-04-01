@@ -1,74 +1,191 @@
-from fastapi import FastAPI, Request, Response, Depends, Cookie, HTTPException, Form, Query, status
+from fastapi import FastAPI, Request, Response, Depends, Cookie, HTTPException, Form, Query, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from schemas import ReviewCreate, ReviewResponse
+from schemas import ReviewCreate, ReviewResponse, UserCreate, UserResponse
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+import models
+from database import Base, engine, get_db
+
+from typing import Annotated
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/media", StaticFiles(directory="media"), name="media")
 templates = Jinja2Templates(directory="templates")
 
-reviews: list[dict] = [
-    {
-        "id": 1,
-        "user": "Sonicao",
-        "date_posted": "21/04/2026",
-        "score": "10/10",
-        "game": "Terraria",
-        "text": "Amo terraria"
-    },
+# API calls -------------------------
 
-    {
-        "id": 2,
-        "user": "EPU",
-        "date_posted": "21/04/2026",
-        "score": "10/10",
-        "game": "Terraria",
-        "text": "Amo terraria tbm"
-    },
-] 
+@app.post(
+    "/api/users",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.username == user.username))
+    existing_user = result.scalars().first()
 
-@app.get("/reviews")
-@app.get("/")
-def home(request: Request):
-    return templates.TemplateResponse(request, "home.html", {"reviews": reviews, "title": "Home"})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists"
+        )
 
-@app.get("/reviews/{review_id}")
-def get_review(request: Request, review_id: int):
-    for review in reviews:
-        if review.get("id") == review_id:
-            return templates.TemplateResponse(
-                request,
-                "review.html",
-                {"review": review, "title": "Review"}
-            )
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Review not found")
+    result = db.execute(select(models.User).where(models.User.email == user.email))
+    existing_email = result.scalars().first()
+    
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already exists"
+        )
 
-@app.get("/api/reviews", response_model=list[ReviewResponse])
-def get_reviews():
-    return reviews
+    new_user = models.User(
+        username=user.username,
+        email=user.email,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+
+@app.get(
+    "/api/users/{user_id}",
+    response_model=UserResponse
+)
+def find_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalars().first()
+
+    if user:
+        return user
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
 
 @app.post(
     "/api/reviews",
     response_model=ReviewResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_review(review: ReviewCreate):
-    new_id = max(p["id"] for p in reviews) + 1 if reviews else 1
-    new_review = {
-        "id": new_id,
-        "user": review.user,
-        "score": review.score,
-        "game": review.game,
-        "text": review.text,
-        "date_posted": "21/04/2026",
-    }
-    reviews.append(new_review)
+def create_review(review: ReviewCreate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == review.user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    existing_review = db.execute(
+        select(models.Review).where(
+            models.Review.user_id == user.id,
+            models.Review.game == review.game
+        )
+    ).scalar_one_or_none()
+    if existing_review:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already has a review for this game",
+        )
+
+    new_review = models.Review(
+        user = user,
+        user_id = review.user_id,
+        score = review.score,
+        game = review.game,
+        text = review.text,
+    )
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+
     return new_review
 
+@app.get(
+    "/api/reviews/{review_id}",
+    response_model=ReviewResponse
+)
+def find_review(review_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Review).where(models.Review.id == review.id))
+    review = result.scalars().first()
+
+    if review:
+        return review
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found"
+        )
+
+
+# Home
+@app.get("/", include_in_schema=False, name="home")
+@app.get("/reviews", include_in_schema=False, name="reviews")
+def home(request: Request, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Review))
+    reviews = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {"reviews": reviews, "title": "Home"},
+    )
+
+# Review page
+@app.get(
+    "/reviews/{review_id}",
+    include_in_schema=False, 
+    name="reviews_id"
+)
+def review(review_id : int, request: Request, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Review).where(models.Review.id == review_id))
+    review = result.scalars().first()
+
+    if review:
+        return templates.TemplateResponse(
+            request,
+            "review.html",
+            {"review": review, "title": "Review"},
+        )
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found"
+        )
+
+# User profile
+@app.get("/users/{user_id}", include_in_schema=False, name="user_profile")
+def user_page(
+    request: Request,
+    user_id: int,
+    db: Annotated[Session, Depends(get_db)],
+):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    result = db.execute(select(models.Review).where(models.Review.user_id == user_id))
+    reviews = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "profile.html",
+        {"reviews": reviews, "user": user, "title": f"{user.username}'s Posts"},
+    )
 
 # Tratamento de erro
 @app.exception_handler(StarletteHTTPException)

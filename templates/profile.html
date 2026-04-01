@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="user-profile">
+
+    <!-- User Header -->
+    <div class="profile-header">
+        <img class="user-icon-large" src="{{ user.image_path }}" alt="profile picture">
+
+        <div class="user-info">
+            <h2>{{ user.username }}</h2>
+            {% if user.bio %}
+                <p class="user-bio">{{ user.bio }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- User Reviews -->
+    <h3>Reviews</h3>
+
+    <div class="posts">
+        {% for review in reviews %}
+        <a href="/reviews/{{ review.id }}" class="post-link">
+            <div class="post-card">
+
+                <div class="post-header">
+                    <img class="user-icon" src="{{ review.user.image_path }}" alt="icon">
+                    <div class="post-user-info">
+                        <span class="username">{{ review.user.username }}</span>
+                        <span class="game-name">{{ review.game }}</span>
+                    </div>
+                </div>
+
+                <div class="post-body">
+                    <p style="color: white;">{{ review.text }}</p>
+                </div>
+
+                <span class="game-name">{{ review.score }}</span>
+
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock content %}
