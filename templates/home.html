@@ -5,25 +5,7 @@
 
 <div class="posts">
     {% for review in reviews %}
-    <a href="/reviews/{{review.id}}" class="post-link">
-        <div class="post-card">
-
-            <div class="post-header">
-                <img class="user-icon" src="{{review.user.image_path}}" alt="icon">
-                <div class="post-user-info">
-                    <a href="/users/{{review.user.id}}" style="color: white;" class="username">{{review.user.username}}</a>
-                    <span class="game-name">{{review.game}}</span>
-                </div>
-            </div>
-
-            <div class="post-body">
-                <p style="color: white;">{{review.text}}</p>
-            </div>
-
-            <span class="game-name">{{review.score}}</span>
-
-        </div>
-    </a>
+        {% include "review_layout.html" %}
     {% endfor %} 
 </div>
 

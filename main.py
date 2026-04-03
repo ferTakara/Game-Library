@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from schemas import ReviewCreate, ReviewResponse, UserCreate, UserResponse
+from schemas import ReviewCreate, ReviewResponse, UserCreate, UserResponse, GameCreate, GameResponse
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -24,6 +24,7 @@ templates = Jinja2Templates(directory="templates")
 
 # API calls -------------------------
 
+# Relacionado a usuario
 @app.post(
     "/api/users",
     response_model=UserResponse,
@@ -74,6 +75,72 @@ def find_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
             detail="User not found"
         )
 
+
+
+# Relacionado a jogo
+@app.post(
+    "/api/games",
+    response_model=GameResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_game(game: GameCreate, db: Annotated[Session, Depends(get_db)]):
+    existing_game = db.execute(
+        select(models.Game).where(
+            models.Game.title == game.title
+        )
+    ).scalar_one_or_none()
+    if existing_game:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Game already exists",
+        )
+
+    new_game = models.Game(
+        title = game.title,
+    )
+    db.add(new_game)
+    db.commit()
+    db.refresh(new_game)
+
+    return new_game
+
+@app.get(
+    "/api/games/{game_id}",
+    response_model=GameResponse
+)
+def find_game(game_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Game).where(models.Game.id == game_id))
+    game = result.scalars().first()
+
+    if game:
+        return game
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found"
+        )
+
+@app.delete(
+    "/api/games/{game_id}",
+    response_model=GameResponse
+)
+def delete_game(game_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Game).where(models.Game.id == game_id))
+    game = result.scalars().first()
+
+    if game:
+        db.delete(game)
+        db.commit()
+        return game
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found"
+        )
+
+
+
+# Relacionado a reviews
 @app.post(
     "/api/reviews",
     response_model=ReviewResponse,
@@ -88,10 +155,19 @@ def create_review(review: ReviewCreate, db: Annotated[Session, Depends(get_db)])
             detail="User not found",
         )
 
+    result = db.execute(select(models.Game).where(models.Game.id == review.game_id))
+    game = result.scalars().first()
+    if not game:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found",
+        )
+
+
     existing_review = db.execute(
         select(models.Review).where(
             models.Review.user_id == user.id,
-            models.Review.game == review.game
+            models.Review.game_id == game.id
         )
     ).scalar_one_or_none()
     if existing_review:
@@ -103,8 +179,9 @@ def create_review(review: ReviewCreate, db: Annotated[Session, Depends(get_db)])
     new_review = models.Review(
         user = user,
         user_id = review.user_id,
+        game = game,
+        game_id = review.game_id,
         score = review.score,
-        game = review.game,
         text = review.text,
     )
     db.add(new_review)
@@ -118,7 +195,7 @@ def create_review(review: ReviewCreate, db: Annotated[Session, Depends(get_db)])
     response_model=ReviewResponse
 )
 def find_review(review_id: int, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.Review).where(models.Review.id == review.id))
+    result = db.execute(select(models.Review).where(models.Review.id == review_id))
     review = result.scalars().first()
 
     if review:
@@ -128,6 +205,25 @@ def find_review(review_id: int, db: Annotated[Session, Depends(get_db)]):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Review not found"
         )
+
+@app.delete(
+    "/api/reviews/{review_id}",
+    response_model=ReviewResponse
+)
+def delete_review(review_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Review).where(models.Review.id == review_id))
+    review = result.scalars().first()
+
+    if review:
+        db.delete(review)
+        db.commit()
+        return review
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Review not found"
+        )
+
 
 
 # Home
@@ -186,6 +282,56 @@ def user_page(
         "profile.html",
         {"reviews": reviews, "user": user, "title": f"{user.username}'s Posts"},
     )
+
+# Games Page
+@app.get("/games", include_in_schema=False, name="games")
+def game_page(request: Request, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Game))
+    games = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "games.html",
+        {"games": games, "title": "Home"},
+    )
+
+@app.get("/search_games")
+def search_games(request: Request, q: str = ""):
+    statement = select(Game)
+
+    if q:
+        statement = statement.where(Game.title.ilike(f"%{q}%"))
+
+    games = session.exec(statement).all()
+
+    return templates.TemplateResponse(
+        "games_results.html",
+        {"request": request, "games": games}
+    )
+
+# Individual game page 
+@app.get(
+    "/games/{games_id}",
+    include_in_schema=False, 
+    name="games_id"
+)
+def review(games_id : int, request: Request, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.Game).where(models.Game.id == games_id))
+    game = result.scalars().first()
+
+    if game:
+        return templates.TemplateResponse(
+            request,
+            "game_page.html",
+            {"game": game, "title": game.title},
+        )
+
+    raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail = "Game not found"
+    )
+
+
+
 
 # Tratamento de erro
 @app.exception_handler(StarletteHTTPException)

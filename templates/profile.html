@@ -10,7 +10,7 @@
         <div class="user-info">
             <h2>{{ user.username }}</h2>
             {% if user.bio %}
-                <p class="user-bio">{{ user.bio }}</p>
+                <p style="color: rgb(215, 215, 215);" class="user-bio">{{ user.bio }}</p>
             {% endif %}
         </div>
     </div>
@@ -22,25 +22,7 @@
 
     <div class="posts">
         {% for review in reviews %}
-        <a href="/reviews/{{ review.id }}" class="post-link">
-            <div class="post-card">
-
-                <div class="post-header">
-                    <img class="user-icon" src="{{ review.user.image_path }}" alt="icon">
-                    <div class="post-user-info">
-                        <span class="username">{{ review.user.username }}</span>
-                        <span class="game-name">{{ review.game }}</span>
-                    </div>
-                </div>
-
-                <div class="post-body">
-                    <p style="color: white;">{{ review.text }}</p>
-                </div>
-
-                <span class="game-name">{{ review.score }}</span>
-
-            </div>
-        </a>
+            {% include "review_layout.html" %}
         {% endfor %}
     </div>
 

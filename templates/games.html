@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Jogos</h2>
+
+<div class="search-container">
+    <input 
+        type="text"
+        name="q"
+        placeholder="Buscar jogos..."
+        class="search-input"
+
+        hx-get="/search_games"
+        hx-trigger="keyup changed delay:300ms"
+        hx-target="#games-container"
+        hx-swap="innerHTML"
+    >
+</div>
+
+<div class="games-grid">
+    {% for game in games %}
+    <div class="game-image-container">
+        <img src="{{ game.image_path }}" class="game-image">
+        <div class="overlay">
+            <h1 style="color: white;">{{ game.title }}</h1>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}

@@ -1,0 +1,17 @@
+<div class="post-card" onclick="window.location='/reviews/{{review.id}}'">
+
+    <div class="post-header">
+        <img class="user-icon" src="{{review.user.image_path}}" alt="icon">
+        <div class="post-user-info">
+            <a href="/users/{{review.user.id}}" style="color: white;" class="username">{{review.user.username}}</a>
+            <a href="/games/{{review.game.id}}" style="color: #9da742;" class="game">{{review.game.title}}</a>
+        </div>
+    </div>
+
+    <div class="post-body">
+        <p style="color: white;">{{review.text}}</p>
+    </div>
+
+    <span class="game-name">{{review.score}}</span>
+
+</div>

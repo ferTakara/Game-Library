@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="game-page">
+
+    <!-- HEADER DO JOGO -->
+    <div class="game-header">
+
+        <div class="game-cover">
+            <img src="{{ game.image_path }}" alt="{{ game.title }}">
+        </div>
+
+        <div class="game-info">
+            <h1>{{ game.title }}</h1>
+
+            {% if game.description %}
+                <p class="game-description">{{ game.description }}</p>
+            {% endif %}
+
+            {% if game.avg_score %}
+                <span class="game-score">⭐ {{ game.avg_score }}</span>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <hr>
+
+    <!-- REVIEWS -->
+    <h2>Reviews</h2>
+
+    <div class="posts">
+        {% for review in game.reviews %}
+            {% include "review_layout.html" %}
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock content %}

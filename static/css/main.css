@@ -1,3 +1,6 @@
+
+/* CSS relacionado ao layout.html ----------------------------------------------------*/
+
 h1 {color: #9da742}
 a {
     color: #9da742;
@@ -102,6 +105,11 @@ main::before {
   margin-bottom: 10px;
 }
 
+
+
+
+/* CSS relacionado ao profile.html --------------------------------------------------*/
+
 .user-icon {
   width: 45px;
   height: 45px;
@@ -136,6 +144,110 @@ main::before {
     display: flex;
     flex-direction: row;
     gap: 30px;
+}
+
+
+
+
+
+/* CSS relacionado ao game.html ----------------------------------------------------*/
+
+.search-container{
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.search-input{
+    width: 300px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: #1c1f26;
+    color: white;
+    font-size: 14px;
+}
+
+.games-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    padding: 20px;
+}
+
+.game-image-container{
+    width: 100%;
+    aspect-ratio: 3 / 4; /* mantém 3x4 */
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.game-image{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* HOVER 🔥 */
+.game-image-container:hover .game-image{
+    transform: scale(1.08);
+    filter: brightness(0.7);
+}
+
+.overlay{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.game-image-container{
+    position: relative;
+}
+
+.game-image-container:hover .overlay{
+    opacity: 1;
+}
+
+/* CSS relacionado ao game_page.html ----------------------------------------------------*/
+
+.game-page{
+    padding: 20px;
+}
+
+.game-header{
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.game-cover img{
+    width: 200px;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.game-info h1{
+    margin-bottom: 10px;
+}
+
+.game-description{
+    color: #ccc;
+    max-width: 500px;
+}
+
+.game-score{
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #9da742;
 }
 
 footer {

@@ -1,24 +1,4 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="posts">
-        <div class="post-card">
-
-            <div class="post-header">
-                <img class="user-icon" src="{{ review.user.image_path }}" alt="icon">
-                <div class="post-user-info">
-                    <a href="/users/{{review.user.id}}" style="color: white;" class="username">{{review.user.username}}</a>
-                    <span class="game-name">{{review.game}}</span>
-                </div>
-            </div>
-
-            <div class="post-body">
-                <p>{{review.text}}</p>
-            </div>
-
-            <span class="game-name">{{review.score}}</span>
-
-
-        </div>
-</div>
-
+        {% include "review_layout.html" %}
 {% endblock content %}
