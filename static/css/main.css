@@ -75,7 +75,9 @@ main::before {
 
 #bodyMain {
     background-color: rgb(18, 19, 24);
-    width: 1200px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 10px;
 }
 
@@ -89,7 +91,7 @@ main::before {
   background-color: rgb(24, 26, 33);
   border: 1px solid #3a3f4b;
   border-radius: 16px;
-  width: 60%;
+  width: 80%;
   padding: 16px;
   transition: 0.2s;
 }
@@ -105,8 +107,28 @@ main::before {
   margin-bottom: 10px;
 }
 
+/* CSS relacionado ao home.html --------------------------------------------------*/
 
+.home-container {
+    display: flex;
+    padding: 20px;
+}
 
+/* 60% - Reviews */
+.left {
+    flex: 7;
+}
+
+/* 40% - Games */
+.right {
+    flex: 4;
+}
+
+.game-grid-home {
+    display: grid;
+    grid-template-columns: repeat(2, 180px);
+    gap: 12px;
+}
 
 /* CSS relacionado ao profile.html --------------------------------------------------*/
 
@@ -150,9 +172,10 @@ main::before {
 
 
 
-/* CSS relacionado ao game.html ----------------------------------------------------*/
+/* CSS relacionado ao games.html ----------------------------------------------------*/
 
 .search-container{
+    gap: 20px;
     display: flex;
     justify-content: center;
     margin: 20px 0;
@@ -171,9 +194,9 @@ main::before {
 
 .games-grid{
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 40px;
     gap: 25px;
-    padding: 20px;
 }
 
 .game-image-container{
@@ -190,10 +213,9 @@ main::before {
     transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-/* HOVER 🔥 */
 .game-image-container:hover .game-image{
     transform: scale(1.08);
-    filter: brightness(0.7);
+    filter: brightness(0.3);
 }
 
 .overlay{
@@ -207,17 +229,145 @@ main::before {
     transition: opacity 0.3s ease;
 }
 
+.overlay h1 {
+    text-align: center;
+}
+
 .game-image-container{
     position: relative;
 }
 
-.game-image-container:hover .overlay{
+.game-image-container:hover .overlay {
     opacity: 1;
 }
+
+.add-button, .edit-button, .cancel-btn {
+    color: white;
+    background-color: #1c1f26; 
+    border: 1px solid #9da742;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.add-button:hover, .edit-button:hover, .cancel-btn:hover {
+    background-color: #9da742;
+    color: black;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    background: #1c1f26;
+    padding: 25px;
+    border-radius: 12px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    animation: scaleIn 0.2s ease;
+}
+
+.modal-content h2 {
+    margin: 0;
+    text-align: center;
+    color: #9da742;
+}
+
+.game-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-form label {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.game-form input,
+.game-form textarea {
+    background: #121318;
+    border: 1px solid #2a2d38;
+    border-radius: 6px;
+    padding: 10px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+.game-form input:focus,
+.game-form textarea:focus {
+    border-color: #9da742;
+}
+
+.game-form textarea {
+    resize: none;
+    height: 80px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.btn-primary {
+    background: #9da742;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    color: black;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #b8c85a;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 6px;
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #2a2d38;
+}
+
+/* animações */
+@keyframes fadeIn {
+    from { opacity: 0 }
+    to { opacity: 1 }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0 }
+    to { transform: scale(1); opacity: 1 }
+}
+
 
 /* CSS relacionado ao game_page.html ----------------------------------------------------*/
 
 .game-page{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
     padding: 20px;
 }
 
@@ -243,11 +393,27 @@ main::before {
     max-width: 500px;
 }
 
-.game-score{
-    display: inline-block;
-    margin-top: 10px;
-    font-weight: bold;
-    color: #9da742;
+.game-actions {
+    margin-left: auto; 
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;   
+    gap: 10px;
+}
+
+.remove-button, .btn-danger{
+    color: white;
+    background-color: #1c1f26; 
+    border: 1px solid #ee3f24;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.remove-button:hover, .btn-danger:hover{
+    background-color: #ee3f24;
+    color: black;
 }
 
 footer {

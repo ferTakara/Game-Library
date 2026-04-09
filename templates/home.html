@@ -1,12 +1,31 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Posts</h2>
+<div class="home-container">
+    <div class="left">
+        <h2>Posts</h2>
 
-<div class="posts">
-    {% for review in reviews %}
-        {% include "review_layout.html" %}
-    {% endfor %} 
+        <div class="posts">
+            {% for review in reviews %}
+                {% include "review_layout.html" %}
+            {% endfor %} 
+        </div>
+    </div>
+
+    <div class="right">
+        <h2>Recently added</h2>
+        <div class="game-grid-home">
+            {% for game in games %}
+            <div class="game-image-container" onclick="window.location='/games/{{game.id}}'">
+                <img src="{{ game.image_path }}" class="game-image">
+                <div class="overlay">
+                    <h1 style="color: white;">{{ game.title }}</h1>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
+
 
 {% endblock content %}

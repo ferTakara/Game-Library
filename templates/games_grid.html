@@ -1,0 +1,10 @@
+<div class="games-grid">
+    {% for game in games %}
+    <div class="game-image-container" onclick="window.location='/games/{{game.id}}'">
+        <img src="{{ game.image_path }}" class="game-image">
+        <div class="overlay">
+            <h1 style="color: white;">{{ game.title }}</h1>
+        </div>
+    </div>
+    {% endfor %}
+</div>

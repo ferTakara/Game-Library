@@ -1,0 +1,37 @@
+<div class="modal-overlay">
+    <div class="modal-content">
+        <h2>Edit Game</h2>
+
+        <form 
+            class="game-form"
+            hx-patch="/api/games/{{ game.id }}"
+            hx-encoding="multipart/form-data"
+
+            hx-on::after-request="
+            document.getElementById('modal').innerHTML=''
+            location.reload()
+            ">
+
+            <label>Title</label>
+            <input type="text" name="title" value="{{ game.title}}" required>
+
+            <label>Cover Image</label>
+            <input type="file" name="image_path">
+
+            <label>Description</label>
+            <textarea name="bio">{{ game.bio }}</textarea>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save</button>
+                <button 
+                    type="button" 
+                    class="cancel-btn"
+                    onclick="document.getElementById('modal').innerHTML=''">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+

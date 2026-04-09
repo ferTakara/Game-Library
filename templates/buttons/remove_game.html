@@ -1,0 +1,31 @@
+<div class="modal-overlay">
+    <div class="modal-content">
+        <h2>Remove Game</h2>
+
+        <p style="margin-bottom: 20px; color: white;">
+            Are you sure you want to remove 
+            <strong>{{ game.title }}</strong>?
+        </p>
+
+        <form 
+            hx-delete="/api/games/{{ game.id }}"
+            hx-on::after-request="
+                document.getElementById('modal').innerHTML='';
+                location.reload();
+            ">
+
+            <div class="form-actions">
+                <button type="submit" class="btn-danger">
+                    Yes, Remove
+                </button>
+
+                <button 
+                    type="button" 
+                    class="cancel-btn"
+                    onclick="document.getElementById('modal').innerHTML=''">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

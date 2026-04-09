@@ -1,15 +1,19 @@
-from fastapi import FastAPI, Request, Response, Depends, Cookie, HTTPException, Form, Query, status, Depends
+from fastapi import FastAPI, Request, Response, Depends, Cookie, HTTPException, Form, Query, status, Depends, UploadFile, File
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from schemas import ReviewCreate, ReviewResponse, UserCreate, UserResponse, GameCreate, GameResponse
+from schemas import ReviewCreate, ReviewResponse, UserCreate, UserResponse, GameCreate, GameResponse, GameUpdate
 
-from sqlalchemy import select
+from PIL import UnidentifiedImageError
+from starlette.concurrency import run_in_threadpool
+
+from sqlalchemy import select, desc
 from sqlalchemy.orm import Session
 
 import models
+from image_utils import delete_profile_image, process_game_image
 from database import Base, engine, get_db
 
 from typing import Annotated
@@ -78,31 +82,50 @@ def find_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
 
 
 # Relacionado a jogo
-@app.post(
-    "/api/games",
-    response_model=GameResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-def create_game(game: GameCreate, db: Annotated[Session, Depends(get_db)]):
+@app.post("/api/games")
+async def create_game(
+    request: Request,
+    title: str = Form(...),
+    bio: str | None = Form(None),
+    image_path: UploadFile | None = File(None),
+    db: Session = Depends(get_db)
+):
     existing_game = db.execute(
-        select(models.Game).where(
-            models.Game.title == game.title
-        )
+        select(models.Game).where(models.Game.title == title)
     ).scalar_one_or_none()
+
     if existing_game:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Game already exists",
-        )
+        raise HTTPException(400, "Game already exists")
 
     new_game = models.Game(
-        title = game.title,
+        title=title,
+        bio=bio
     )
+
+    if image_path:
+        content = await image_path.read()
+
+        try:
+            new_filename = await run_in_threadpool(process_game_image, content)
+        except UnidentifiedImageError as err:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid image file. Please upload a valid image (JPEG, PNG, GIF, WebP).",
+            ) from err
+
+        new_game.image_file = new_filename
+        
     db.add(new_game)
     db.commit()
     db.refresh(new_game)
 
-    return new_game
+    result = db.execute(select(models.Game))
+    games = result.scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "games_grid.html",
+        {"games": games, "title": "Games"},
+    )
 
 @app.get(
     "/api/games/{game_id}",
@@ -119,6 +142,55 @@ def find_game(game_id: int, db: Annotated[Session, Depends(get_db)]):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Game not found"
         )
+
+@app.patch("/api/games/{game_id}")
+async def update_game(
+    game_id: int,
+    request: Request,
+    title: str = Form(...),
+    bio: str | None = Form(None),
+    image_path: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
+    result = db.execute(select(models.Game).where(models.Game.id == game_id))
+    game = result.scalars().first()
+
+    print("Chegou aqui")
+
+    if not game:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Game not found"
+        )
+
+    game.title = title
+    game.bio = bio
+
+    if image_path:
+        content = await image_path.read()
+
+        try:
+            new_filename = await run_in_threadpool(process_game_image, content)
+        except UnidentifiedImageError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid image file"
+            )
+
+        old_filename = game.image_file
+        game.image_file = new_filename
+
+        if old_filename:
+            delete_profile_image(old_filename)
+
+
+    db.commit()
+    db.refresh(game)
+
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+    )
 
 @app.delete(
     "/api/games/{game_id}",
@@ -137,8 +209,6 @@ def delete_game(game_id: int, db: Annotated[Session, Depends(get_db)]):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Game not found"
         )
-
-
 
 # Relacionado a reviews
 @app.post(
@@ -232,10 +302,22 @@ def delete_review(review_id: int, db: Annotated[Session, Depends(get_db)]):
 def home(request: Request, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.Review))
     reviews = result.scalars().all()
+
+    result = db.execute(select(models.Review))
+    reviews = result.scalars().all()
+
+    result = db.execute(
+        select(models.Game)
+        .order_by(desc(models.Game.id))
+        .limit(4)
+    )
+
+    games = result.scalars().all()
+
     return templates.TemplateResponse(
         request,
         "home.html",
-        {"reviews": reviews, "title": "Home"},
+        {"reviews": reviews, "games": games, "title": "Home"},
     )
 
 # Review page
@@ -295,18 +377,77 @@ def game_page(request: Request, db: Annotated[Session, Depends(get_db)]):
     )
 
 @app.get("/search_games")
-def search_games(request: Request, q: str = ""):
-    statement = select(Game)
+def search_games(request: Request, db: Annotated[Session, Depends(get_db)], search: str = ""):
+    stmt = select(models.Game)
 
-    if q:
-        statement = statement.where(Game.title.ilike(f"%{q}%"))
+    if search:
+        stmt = stmt.where(models.Game.title.ilike(f"%{search}%"))
 
-    games = session.exec(statement).all()
+    stmt = stmt.order_by(models.Game.title)
+
+    result = db.execute(stmt)
+    games = result.scalars().all()
 
     return templates.TemplateResponse(
-        "games_results.html",
-        {"request": request, "games": games}
+        request,
+        "games.html",
+        {"games": games}
     )
+
+@app.get("/add_game_form")
+def game_form(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    return templates.TemplateResponse(
+        request,
+        "buttons/add_game.html",
+    )
+
+@app.get("/edit_game_form")
+def game_form(
+    request: Request,
+    game_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    game = None
+
+    if game_id:
+        result = db.execute(
+            select(models.Game).where(models.Game.id == game_id)
+        )
+        game = result.scalars().first()
+
+    return templates.TemplateResponse(
+        request,
+        "buttons/edit_game.html",
+        {
+            "game": game
+        }
+    )
+
+@app.get("/remove_game_form")
+def game_form(
+    request: Request,
+    game_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    game = None
+
+    if game_id:
+        result = db.execute(
+            select(models.Game).where(models.Game.id == game_id)
+        )
+        game = result.scalars().first()
+
+    return templates.TemplateResponse(
+        request,
+        "buttons/remove_game.html",
+        {
+            "game": game
+        }
+    )
+
 
 # Individual game page 
 @app.get(
@@ -329,6 +470,7 @@ def review(games_id : int, request: Request, db: Annotated[Session, Depends(get_
             status_code=status.HTTP_404_NOT_FOUND,
             detail = "Game not found"
     )
+
 
 
 

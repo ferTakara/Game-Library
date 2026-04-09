@@ -28,6 +28,10 @@ class GameBase(BaseModel):
         max_length=400
     )
 
+class GameUpdate (BaseModel):
+    bio: str | None = Field(default=None)
+    bio: str | None = Field(default=None)
+
 class GameCreate(GameBase):
     pass
 
@@ -47,7 +51,6 @@ class ReviewBase(BaseModel):
 class ReviewCreate(ReviewBase):
     user_id: int #TEMPORARIO
     game_id: int
-
 
 class ReviewResponse(ReviewBase):
     model_config = ConfigDict(from_attributes=True)

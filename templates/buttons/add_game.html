@@ -1,0 +1,33 @@
+<div class="modal-overlay">
+    <div class="modal-content">
+        <h2>Add Game</h2>
+
+        <form 
+            class="game-form"
+            hx-post="/api/games"
+            hx-target=".games-grid"
+            hx-swap="outerHTML"
+            hx-encoding="multipart/form-data"
+            hx-on::after-request="document.getElementById('modal').innerHTML=''">
+
+            <label>Title</label>
+            <input type="text" name="title" placeholder="Enter game title" required>
+
+            <label>Cover Image</label>
+            <input type="file" name="image_path">
+
+            <label>Description</label>
+            <textarea name="bio" placeholder="Optional description..."></textarea>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save</button>
+                <button 
+                    type="button" 
+                    class="cancel-btn"
+                    onclick="document.getElementById('modal').innerHTML=''">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
