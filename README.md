@@ -1,6 +1,6 @@
-# Game Library – Biblioteca de Jogos com Avaliações
+# BabelGames – Biblioteca de Jogos com Avaliações
 
-Game Library é uma aplicação web que permite aos usuários explorar, registrar e avaliar jogos em uma biblioteca pessoal. O objetivo do projeto é criar uma plataforma simples e intuitiva onde jogadores podem organizar os jogos que conhecem ou jogaram, atribuir notas e escrever reviews.
+BabelGames é uma aplicação web que permite aos usuários explorar, registrar e avaliar jogos em uma biblioteca pessoal. O objetivo do projeto é criar uma plataforma simples e intuitiva onde jogadores podem organizar os jogos que conhecem ou jogaram, atribuir notas e escrever reviews.
 
 * Cadastro de jogos (com hx-post)
 * Avaliação de jogos com notas
